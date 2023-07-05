@@ -11,7 +11,7 @@ public class Program
     public static void Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-
+        
         // Add services to the container.
 
         builder.Services.ConfigureApplicationUser(builder.Configuration);
@@ -33,6 +33,7 @@ public class Program
         {
             app.UseSwagger();
             app.UseSwaggerUI();
+            app.ConfigureCors(builder.Configuration);
         }
 
         app.UseHttpsRedirection();
