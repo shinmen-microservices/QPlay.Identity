@@ -4,9 +4,12 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
+    <UserSecretsId>dab0882a-bac6-481b-83cf-096fbbf19e2b</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+	<PackageReference Include="Duende.IdentityServer" Version="6.3.2" />
+	<PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="6.3.2" />
     <PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="3.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.7" />
     <PackageReference Include="QPlay.Common" Version="1.0.0" />

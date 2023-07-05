@@ -5,6 +5,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using QPlay.Common.Settings;
 using QPlay.Identity.Service.Models.Entities;
+using QPlay.Identity.Service.Settings;
 using System;
 
 namespace QPlay.Identity.Service.Extensions;
@@ -17,7 +18,7 @@ public static class ServiceCollectionExtensions
         ServiceSettings serviceSettings = configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
         MongoDBSettings mongoDBSettings = configuration.GetSection(nameof(MongoDBSettings)).Get<MongoDBSettings>();
 
-        services
+        services.Configure<IdentitySettings>(configuration.GetSection(nameof(IdentitySettings)))
             .AddDefaultIdentity<ApplicationUser>()
             .AddRoles<ApplicationRole>()
             .AddMongoDbStores<ApplicationUser, ApplicationRole, Guid>
@@ -26,6 +27,26 @@ public static class ServiceCollectionExtensions
                 serviceSettings.ServiceName
             );
 
+        return services;
+    }
+
+    public static IServiceCollection ConfigureIdentityServer(this IServiceCollection services, IConfiguration configuration)
+    {
+        IdentityServerSettings identityServerSettings = configuration.GetSection(nameof(IdentityServerSettings)).Get<IdentityServerSettings>();
+
+        services.AddIdentityServer(options =>
+        {
+            options.Events.RaiseSuccessEvents = true;
+            options.Events.RaiseFailureEvents = true;
+            options.Events.RaiseErrorEvents = true;
+        })
+            .AddAspNetIdentity<ApplicationUser>()
+            .AddInMemoryApiScopes(identityServerSettings.ApiScopes)
+            .AddInMemoryApiResources(identityServerSettings.ApiResources)
+            .AddInMemoryClients(identityServerSettings.Clients)
+            .AddInMemoryIdentityResources(identityServerSettings.IdentityResources);
+
+        services.AddLocalApiAuthentication();
         return services;
     }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using QPlay.Identity.Service.Extensions;
+using QPlay.Identity.Service.HostedServices;
 
 namespace QPlay.Identity.Service;
 
@@ -14,8 +15,13 @@ public class Program
         // Add services to the container.
 
         builder.Services.ConfigureApplicationUser(builder.Configuration);
+        
+        builder.Services.ConfigureIdentityServer(builder.Configuration);
 
         builder.Services.AddControllers();
+
+        builder.Services.AddHostedService<IdentitySeedHostedService>();
+
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -32,6 +38,8 @@ public class Program
         app.UseHttpsRedirection();
 
         app.UseStaticFiles();
+
+        app.UseIdentityServer();
 
         app.UseAuthorization();
 

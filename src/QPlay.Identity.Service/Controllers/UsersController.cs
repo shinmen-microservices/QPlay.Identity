@@ -1,4 +1,5 @@
 ﻿using MassTransit;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using QPlay.Identity.Service.Extensions;
@@ -8,11 +9,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static Duende.IdentityServer.IdentityServerConstants;
 
 namespace QPlay.Identity.Service.Controllers;
 
 [ApiController]
 [Route("users")]
+[Authorize(Policy = LocalApi.PolicyName)]
 public class UsersController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> userManager;
