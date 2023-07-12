@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using QPlay.Identity.Contracts;
 using QPlay.Identity.Service.Constants;
 using QPlay.Identity.Service.Models.Entities;
 using QPlay.Identity.Service.Settings;
@@ -29,6 +31,7 @@ public class RegisterModel : PageModel
     private readonly ILogger<RegisterModel> _logger;
     private readonly IEmailSender _emailSender;
     private readonly IdentitySettings _identitySettings;
+    private readonly IPublishEndpoint _publishEndpoint;
 
     public RegisterModel(
         UserManager<ApplicationUser> userManager,
@@ -36,7 +39,9 @@ public class RegisterModel : PageModel
         SignInManager<ApplicationUser> signInManager,
         ILogger<RegisterModel> logger,
         IEmailSender emailSender,
-        IOptions<IdentitySettings> identityOptions)
+        IOptions<IdentitySettings> identityOptions,
+        IPublishEndpoint publishEndpoint
+    )
     {
         _userManager = userManager;
         _userStore = userStore;
@@ -45,6 +50,7 @@ public class RegisterModel : PageModel
         _logger = logger;
         _emailSender = emailSender;
         _identitySettings = identityOptions.Value;
+        _publishEndpoint = publishEndpoint;
     }
 
     /// <summary>
@@ -86,7 +92,11 @@ public class RegisterModel : PageModel
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [StringLength(
+            100,
+            ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.",
+            MinimumLength = 6
+        )]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
         public string Password { get; set; }
@@ -100,7 +110,6 @@ public class RegisterModel : PageModel
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
     }
-
 
     public async Task OnGetAsync(string returnUrl = null)
     {
@@ -129,21 +138,36 @@ public class RegisterModel : PageModel
 
                 _logger.LogInformation($"User added to the {Roles.PLAYER} role.");
 
+                await _publishEndpoint.Publish(new UserUpdated(user.Id, user.Email, user.Gil));
+
                 string userId = await _userManager.GetUserIdAsync(user);
                 string code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                 string callbackUrl = Url.Page(
                     "/Account/ConfirmEmail",
                     pageHandler: null,
-                    values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
-                    protocol: Request.Scheme);
+                    values: new
+                    {
+                        area = "Identity",
+                        userId,
+                        code,
+                        returnUrl
+                    },
+                    protocol: Request.Scheme
+                );
 
-                await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                await _emailSender.SendEmailAsync(
+                    Input.Email,
+                    "Confirm your email",
+                    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>."
+                );
 
                 if (_userManager.Options.SignIn.RequireConfirmedAccount)
                 {
-                    return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
+                    return RedirectToPage(
+                        "RegisterConfirmation",
+                        new { email = Input.Email, returnUrl = returnUrl }
+                    );
                 }
                 else
                 {
@@ -169,9 +193,11 @@ public class RegisterModel : PageModel
         }
         catch
         {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
+            throw new InvalidOperationException(
+                $"Can't create an instance of '{nameof(ApplicationUser)}'. "
+                    + $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively "
+                    + $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml"
+            );
         }
     }
 
@@ -179,7 +205,9 @@ public class RegisterModel : PageModel
     {
         if (!_userManager.SupportsUserEmail)
         {
-            throw new NotSupportedException("The default UI requires a user store with email support.");
+            throw new NotSupportedException(
+                "The default UI requires a user store with email support."
+            );
         }
         return (IUserEmailStore<ApplicationUser>)_userStore;
     }
