@@ -16,9 +16,10 @@ public class LogoutModel : PageModel
     private readonly IIdentityServerInteractionService _identityServerInteractionService;
 
     public LogoutModel(
-    SignInManager<ApplicationUser> signInManager,
-    ILogger<LogoutModel> logger,
-    IIdentityServerInteractionService identityServerInteractionService)
+        SignInManager<ApplicationUser> signInManager,
+        ILogger<LogoutModel> logger,
+        IIdentityServerInteractionService identityServerInteractionService
+    )
     {
         _signInManager = signInManager;
         _logger = logger;
@@ -27,7 +28,9 @@ public class LogoutModel : PageModel
 
     public async Task<IActionResult> OnGet(string logoutId)
     {
-        LogoutRequest logoutRequest = await _identityServerInteractionService.GetLogoutContextAsync(logoutId);
+        LogoutRequest logoutRequest = await _identityServerInteractionService.GetLogoutContextAsync(
+            logoutId
+        );
         if (logoutRequest?.ShowSignoutPrompt == false)
         {
             return await OnPost(logoutRequest.PostLogoutRedirectUri);

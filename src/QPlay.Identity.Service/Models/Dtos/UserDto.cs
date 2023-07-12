@@ -2,8 +2,7 @@
 
 namespace QPlay.Identity.Service.Models.Dtos;
 
-public record UserDto
-(
+public record UserDto(
     Guid Id,
     string Username,
     string Email,
