@@ -3,17 +3,10 @@ using QPlay.Identity.Service.Models.Entities;
 
 namespace QPlay.Identity.Service.Extensions;
 
-public static class DtoExtensions
+public static class DtoExtension
 {
     public static UserDto AsDto(this ApplicationUser user)
     {
-        return new UserDto
-        (
-            user.Id,
-            user.UserName,
-            user.Email,
-            user.Gil,
-            user.CreatedOn
-        );
+        return new(user.Id, user.UserName, user.Email, user.Gil, user.CreatedOn);
     }
 }
