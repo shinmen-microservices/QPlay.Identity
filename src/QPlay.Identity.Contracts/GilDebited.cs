@@ -2,7 +2,4 @@
 
 namespace QPlay.Identity.Contracts;
 
-public record GilDebited
-(
-    Guid CorrelationId
-);
+public record GilDebited(Guid CorrelationId);
